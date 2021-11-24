@@ -4,7 +4,7 @@
 // 3 types: 387073 lines (201324007 characters)
 // 4 types: ... (1440157310 characters)
 // 5 types: could not get it to run (:
-using variant = std::variant<int, float, char, double>;
+using variant = std::variant<int, float>;
 int main()
 {
     variant v = 0;

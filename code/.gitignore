@@ -1,3 +1,5 @@
+match_tree
+match_tree_ref
 minmax_warnings
 warnings
 *.ll
