@@ -343,15 +343,257 @@ Back to C++
 
 ### Switches save the day!
 
+```cpp
+#include <iostream>
+
+int main()
+{
+    int n = 42;
+    switch (n)
+    {
+    case 42:
+        std::cout << "The answer" << std::endl;
+        break;
+    default:
+        std::cout << "Not the answer" << std::endl;
+    }
+    return 0;
+}
+```
+
 ### Well, only if processing primitive types...
+
+```cpp
+#include <iostream>
+
+int main() {
+    std::string s = "Hello there...";
+    switch (s) {
+    case "Hello there...":
+        std::cout << "General Kenobi" << std::endl;
+    default:
+        break;
+    }
+    return 0;
+}
+```
+
+\pause
+This **does not** compile. `error: switch quantity not an integer`
 
 ### Remember algebraic types?
 
+Algebraic types exist in C++ since **C++11** for product types (`std::tuple`)
+and **C++17** for sum types (`std::variant`).
+
+\pause
+\vfill
+
+```cpp
+#include <string>
+#include <tuple>
+#include <variant>
+
+int main()
+{
+    std::tuple<int, std::string> p = {0, "zero"};
+    std::variant<int, std::string> s_int = 42;
+    std::variant<int, std::string> s_string = "forty-two";
+    return std::get<int>(s_int);
+}
+```
+
+### Static or dynamic?
+
+What happens there?
+
+```cpp
+#include <string>
+#include <variant>
+
+int main()
+{
+    std::variant<int, std::string> s = "forty-two";
+    return std::get<int>(s);
+}
+```
+
+\pause
+It does compile.
+\pause
+But we get a runtime error. `std::get: wrong index for variant`
+
+### Naive variants using unions
+
+Examples inspired from [cppreference/union](https://en.cppreference.com/w/cpp/language/union).
+
+```cpp
+struct my_variant
+{
+    enum {INT, STRING} tag;
+    union
+    {
+        int i;
+        std::string s;
+    };
+};
+```
+
+\pause
+Obviously, `std::variant` is quite more complicated (`clang`'s `libcxx` [variant
+header](https://github.com/llvm/llvm-project/blob/main/libcxx/include/variant)
+is 1775 lines) but you get the idea.
+
+### Dispatching on variants
+
+Remember, it's all **run-time**.
+
+```cpp
+void print(const my_variant& v)
+{
+    switch(s.tag)
+    {
+        case my_variant::INT: std::cout << v.i << '\n'; break;
+        case my_variant::STRING: std::cout << v.s << '\n'; break;
+    }
+}
+
+int main()
+{
+    my_variant v = {my_variant::INT, 42};
+    print(v);
+}
+```
+
 ### The almighty `std::visit`
+
+For `std::variant`, we can use `std::visit`.
+
+```cpp
+#include <variant>
+#include <iostream>
+
+int main()
+{
+    std::variant<int, std::string> v = 42;
+    std::visit([](auto x){ std::cout << x << '\n';}, v);
+}
+```
+
+### Where is Waldo?
+
+Did you catch it? A **template** was hiding in the previous slide...
+
+\pause
+
+Let's desugar the lambda.
+
+```cpp
+struct Lambda {
+    void operator()(auto x) {
+        std::cout << x << '\n';
+    }
+};
+
+int main() {
+    std::variant<int, std::string> v = 42;
+    std::visit(Lambda(), v);
+}
+```
+
+### Warning: explicit
+
+It was there all along!
+
+```cpp
+struct Lambda {
+    template <typename T>
+    void operator()(T x) {
+        std::cout << x << '\n';
+    }
+};
+
+int main() {
+    std::variant<int, std::string> v = 42;
+    std::visit(Lambda(), v);
+}
+```
+
+### Our first real matcher
+
+```cpp
+struct A {};
+struct B {};
+
+struct Is_A
+{
+    bool operator()(A) { return true; }
+    bool operator()(B) { return false; }
+};
+
+int main()
+{
+    std::variant<A, B> v = A();
+    return std::visit(Is_A(), v); // returns 1
+}
+```
 
 ### Default cases thanks to templates
 
+- `std::visit` needs its visitor to handle **every possible type** for the
+  variant visited
+- This could get quite annoying if we had to explicitly handle every possible
+  case
+
+\pause
+\vfill
+```cpp
+using TreeVariant = misc::variant<rExp, rStm>;
+using ExpVariant =
+  misc::variant<rBinop, rCall, rConst, rEseq, rMem, rName, rTemp>;
+using StmVariant =
+  misc::variant<rCjump, rJump, rLabel, rMove, rSeq, rSxp>;
+```
+\vfill
+\pause
+
+Templates can be used for this kind of generation: if we use a **templated
+method** in the visitor, it will **generate code** for every otherwise unmatched
+case.
+
+\pause
+This is our poor man's wildcard. \pause Sort of.
+
+### As easy as that
+
+```cpp
+struct A {};
+struct B {};
+
+struct Is_A
+{
+    bool operator()(A) { return true; }
+    bool operator()(auto) { return false; }
+};
+
+int main()
+{
+    std::variant<A, B, int, float> v = 42;
+    return std::visit(Is_A(), v); // returns 0
+}
+```
+
 ### Basic solution
+
+Time to put it all together!
+
+Let's see a simple recreation of the structure we use for instruction
+scheduling.
+
+\vfill
+
+#### Example
+See `code/cpp-matching/match-tree.cc`
 
 Hacking C++ to emulate OCaml (poorly)
 =====================================
