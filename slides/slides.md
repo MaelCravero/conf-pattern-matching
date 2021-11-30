@@ -81,10 +81,7 @@ C++ basics
 ![Daemon prince Bjarne Stroustrup](img/stroustrup.jpeg){width=20%}
 
 - Created by **Bjarne Stroustrup** in the 80s, first standard in **1998**
-- C++ is a compiled multi-paradigm programming language with "0-cost
-  abstractions"
-- First started as an "object-oriented C", now a somewhat high-level language
-  with many (*many*) features
+- C++ is a compiled object-oriented and multi-paradigm programming language
 - Strong distinction between "old" C++ (pre C++11) and **modern** C++
 
 ### "I like C++" and other hilarious jokes you can tell yourself
@@ -93,9 +90,8 @@ C++ basics
 
 ### What's a compiler? Can I eat it?
 
-To put it simply, a *compiler* is a software which goal is to generate
-**lower-level** intermediate code or machine code from **higher-level** source
-code.
+A *compiler* is a software which goal is to generate **lower-level**
+intermediate code or machine code from **higher-level** source code.
 
 - `gcc` generates *assembly* from *C*
 - `ocamlc` generates *OCaml bytecode* from *OCaml*
@@ -137,7 +133,7 @@ A *generic* function is a function which can take multiple types as arguments.
 
 \pause
 
-This concept is linked to **polymorphism**: representing multiple types with a
+This is linked to **polymorphism**: representing multiple types with a
 common symbol.
 
 Polymorphism can be:
@@ -147,15 +143,16 @@ Polymorphism can be:
 
 \pause
 
-In C++, genericity can be expressed mostly through **subtyping**, which is
-linked to static and dynamic polymorphism, and **templates**, which are only
-linked to static polymorphism.
+In C++, either **subtyping** (static and dynamic) or **templates** (static
+only).
 
 ### Subtyping classes
 
-In object-oriented programming, one can create a **subclass** which *inherits* from
-another class. This is a form of **subtyping**.
+- In object-oriented programming, one can create a **subclass** which *inherits*
+  from another class.
+- This is a form of **subtyping**.
 
+\vfill
 This subclass can be used in any context where the superclass is expected, but
 not the reverse.
 
@@ -165,15 +162,14 @@ See `code/cpp-basics/subtypes.cc`
 
 ### Static type, dynamic type
 
-Depending on the context, an object can have multiple types. We differentiate
-its **static type**, its type at compile-time within a specific context, from
-its **dynamic type**, the type with which it is created which can be accessed at
-run-time.
+Depending on the context, an object can have multiple types:
+- A **static type**, its type at compile-time within a specific context
+- A **dynamic type**, the type with which it is created which can be accessed at
+  run-time.
 
 \pause
 
-The dynamic type of an object can be accessed through **virtual methods**. This
-is the basis of patterns like visitors (which we won't talk about).
+The dynamic type of an object can be accessed through **virtual methods**.
 
 \vfill
 #### Example
@@ -181,11 +177,10 @@ See `code/cpp-basics/static-vs-dynamic.cc`
 
 ### Templates and monomorphization
 
-The other type of genericity allowed by C++ is **templates**.
-
-Templates allow for any class or function to be parametrized by a specific type.
-This will then generate appropriate code through a process known as
-*monomorphization*.
+- The other type of genericity allowed by C++ is **templates**.
+- Templates allow for any class or function to be parametrized by a specific type.
+- This will then generate appropriate code through a process known as
+  *monomorphization*.
 
 Templates are **fully static**, they are processed at compile-time only and do
 not exist at run-time.
@@ -226,8 +221,8 @@ as such:
 void print(auto v) { std::cout << v; }
 ```
 
-This is only *syntactic sugar*, those two writings are exactly the same! The
-`auto` syntax is monomorphized too!
+- This is only *syntactic sugar*, those two writings are exactly the same!
+- The `auto` syntax is monomorphized too!
 
 
 Pattern-matching for dummies
@@ -383,8 +378,8 @@ This **does not** compile. `error: switch quantity not an integer`
 
 ### Remember algebraic types?
 
-Algebraic types exist in C++ since **C++11** for product types (`std::tuple`)
-and **C++17** for sum types (`std::variant`).
+- **C++11** adds product types (`std::tuple`)
+- **C++17** adds sum types (`std::variant`)
 
 \pause
 \vfill
@@ -440,9 +435,9 @@ struct my_variant
 ```
 
 \pause
-Obviously, `std::variant` is quite more complicated (`clang`'s `libcxx` [variant
+`std::variant` is quite more complicated (`clang`'s `libcxx` [variant
 header](https://github.com/llvm/llvm-project/blob/main/libcxx/include/variant)
-is 1775 lines) but you get the idea.
+is 1775 lines).
 
 ### Dispatching on variants
 
@@ -672,10 +667,8 @@ This is a bit better, but still kind of whack...
 
 ### Not so trivial
 
-- Our "pattern-matching" with variants is not real pattern-matching, more of a
-  visitor dispatching on specific types
-- Note that the dispatch is only based on the **static type** stored in the
-  variant
+- Our "pattern-matching" is a visitor dispatching on specific types
+- Dispatch is only based on the **static type** stored in the variant
 - How do we dispatch based on the type of a node's children if we can only
   dispatch on the node's static type?
 
@@ -704,14 +697,15 @@ children?
 \vfill
 
 \pause
-**Monomorphization** applies to types too! Templated types denote **multiple
-types** that can be **generated** at run-time through template instantiation.
+**Monomorphization** applies to types too!
+
+Templated types denote **multiple types** that can be **generated** at run-time
+through template instantiation.
 
 ### TODO
 
-If we template nodes based on the children type, its type will be impacted by
-the type of the children! This means that we can then do specific matching
-functions for specific types and subtypes!
+- If we template nodes based on the children's type, we create specified types!
+- We could then do specific matching functions for specific types and subtypes!
 
 Seems simple! Here's what we have to do:
 
@@ -743,9 +737,6 @@ You should be asking yourselves some questions:
 
 - Did you notice the `auto` keyword I use everywhere?
 - This is used for type inference \pause (like in OCaml but less good)
-\pause
-- It can be used for variable declarations, function return type, template
-  syntactic sugar...
 \pause
 - What if we were able to use `auto` as a template parameter?
 
@@ -790,8 +781,8 @@ std::shared_ptr<A> ptr2(ptr1);  // use_count = 2
 
 \vfill
 \pause
-When `ptr1` or `ptr2` goes out of scope, `use_count` is decremented. If it goes
-to 0, the resource is deallocated.
+- When `ptr1` or `ptr2` goes out of scope, `use_count` is decremented.
+- If it goes to 0, the resource is deallocated.
 
 ### Not so smart
 
@@ -809,9 +800,9 @@ std::shared_ptr<A> ptr2(raw_A); // ptr2's use_count = 1
 
 \vfill
 \pause
-`ptr1` and `ptr2`'s use count are distinct here... If one goes out of scope the
-resource will be deallocated, and when the second one attempts to free it we get
-an error.
+- `ptr1` and `ptr2`'s use count are distinct here...
+- If one goes out of scope the resource will be deallocated, and when the second
+  one attempts to free it we get an error.
 
 ### C++ black magic
 
@@ -886,23 +877,21 @@ See `code/cpp-matching-hacks/match-tree-upcast.cc`
 
 \pause
 #### ...but not in TC
-Once again, this does not work properly in TC due to our wrapper class on
-`std::shared_ptr`. See `code/cpp-matching-hacks/match-tree-upcast-ref.cc`
+This does not work in TC due to our wrapper class on `std::shared_ptr`.
+
 
 \pause
-This is actually due to poor template instantiation rules which can be fixed
-using C++20 concepts (a mechanism for adding constraints to templates).
+This is due to poor template instantiation which can be fixed using C++20
+concepts (a mechanism for adding constraints to templates).
 
 ### Aren't we missing something?
 
-- If you paid attention, the last examples did not feature any destructuring.
+If you paid attention, the last examples did not feature any destructuring.
+
 \pause
-- This is because implementing it features templates heavily, which does complicates everything.
+- Implementing it features templates heavily, which does complicates everything.
 \pause
-- Moreover, our `Tree` implementation in TC is not templated...
-\pause
-- This means we must either re-write everything to be templated, or have wrapper
-  functions to generate templated types out of non-templated dynamic types
+- And our `Tree` implementation in TC is not templated...
 
 \pause
 This is bad news.
@@ -941,7 +930,7 @@ Three ideas:
 Imagine this templated type (and associated tree):
 
 ```
-Mem<Mem<Mem<Mem<Mem<Mem<Move<Int, Move<Int<Mem<...>>>>>>>>>>
+Mem<Mem<Mem<Mem<Mem<Mem<Move<Int, Move<Int, Mem<Mem<...>>>>>>>>>>
 ```
 
 The **static** type would have to contain the content of the whole **dynamic**
@@ -950,7 +939,7 @@ tree... This makes no sense.
 \pause
 #### Note
 We could think about using tags and end up with `Mem<mem_t>` to restrict the
-depth of the template, it would be possible to have it working but would still
+depth of the template, it might be possible to have it working but would still
 involve a lot of complexity.
 
 ### There can't be that many cases, right?
@@ -963,23 +952,19 @@ See `code/...`
 :::
 
 \pause
+- We end with nested visits to generate templated types...
+\pause
+- Why not just perform nested visits then?
 
-We end with nested visits to generate templated types... Why not just perform
-nested visits then?
-
+\pause
 This is a working solution, but adds too much unnecessary complexity.
 
 ### Dynamic and static don't match
 
-::: {.block}
-#### Example
-See `code/...`
-:::
-
 \pause
 ```cpp
 template <int N> struct S {};
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
     S<1000> s1;
     S<argc> s2;
@@ -989,9 +974,11 @@ int main(int argc, char **argv)
 Templates are **compile-time** only. What's the value of `argc` at compilation?
 
 \pause
-This will not compile because every template parameter must be known at
-compilation, which is not the case of `argc`. This is why we can't use virtual
-methods results for templating.
+- This will not compile because every template parameter must be known at
+  compilation
+- Virtual method calls are run-time only
+
+We can't use virtual methods results for templating.
 
 ### Wasted
 
@@ -1060,4 +1047,4 @@ will most probably be added to the language at some point
 So who knows, maybe one day we'll have what we need in C++...
 
 \pause
-In the meantime, I'll be writing OCaml!
+In the meantime, I'll be coding in OCaml!
