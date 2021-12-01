@@ -1,6 +1,15 @@
 Back to C++
 ===========
 
+### Missing: Fonctionalité vraiment cool(tm)
+
+- C++ has no pattern-matching.
+- We will have to **emulate** it through other means.
+
+\pause
+Remember: static and dynamic types, templates, compile-time
+monomorphization.
+
 ### Switches save the day!
 
 ```cpp
@@ -198,15 +207,16 @@ int main()
 }
 ```
 
-### Default cases thanks to templates
+### Mandatory explicitness
 
 - `std::visit` needs its visitor to handle **every possible type** for the
   variant visited
 - This could get quite annoying if we had to explicitly handle every possible
-  case
+  case...
 
 \pause
 \vfill
+Here are the variants we're working with:
 ```cpp
 using TreeVariant = misc::variant<rExp, rStm>;
 using ExpVariant =
@@ -214,12 +224,12 @@ using ExpVariant =
 using StmVariant =
   misc::variant<rCjump, rJump, rLabel, rMove, rSeq, rSxp>;
 ```
-\vfill
-\pause
 
-Templates can be used for this kind of generation: if we use a **templated
-method** in the visitor, it will **generate code** for every otherwise unmatched
-case.
+### Default cases thanks to templates
+
+- Templates can be used for handling many types implicitly
+- if we use a **templated method** in the visitor, it will **generate code** for
+  every otherwise unmatched case
 
 \pause
 This is our poor man's wildcard. \pause Sort of.

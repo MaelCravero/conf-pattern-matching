@@ -88,6 +88,7 @@ See `code/cpp-basics/subtypes.cc`
 ### Static type, dynamic type
 
 Depending on the context, an object can have multiple types:
+
 - A **static type**, its type at compile-time within a specific context
 - A **dynamic type**, the type with which it is created which can be accessed at
   run-time.
@@ -148,3 +149,9 @@ void print(auto v) { std::cout << v; }
 
 - This is only *syntactic sugar*, those two writings are exactly the same!
 - The `auto` syntax is monomorphized too!
+
+### To keep in mind
+
+- Objects have a **static** type and a **dynamic type** which may differ
+- Templates are only processed at **compile-time**
+- Templates **generate** specialized code for every possible template parameter

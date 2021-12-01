@@ -169,8 +169,8 @@ vTree v = t; // Will not compile: sTree is not in vTree
 When declaring the variant, only the value's static type is taken into account,
 but we want to access the dynamic type.
 
-To access the dynamic type, either we force the cast (which would cause an error
-if we cast to the wrong type) or we use virtual methods.
+\pause
+To access the dynamic type, we have to use virtual methods.
 
 ### Smarter pointers
 
@@ -223,9 +223,9 @@ std::shared_ptr<A> ptr2(raw_A); // ptr2's use_count = 1
 \pause
 #### Note
 
-For some reason this does not work properly in TC, probably due to our wrapper
-class on `std::shared_ptr`, so we pass the shared pointer as argument to the
-virtual method...
+This does not work in TC, probably due to our wrapper class on
+`std::shared_ptr`. Instead, we pass the shared pointer as argument to the
+virtual method to propagate its use count...
 
 ```cpp
 auto left = binop->left_get()->variant(binop->left_get());
@@ -255,13 +255,12 @@ This **11 lines** code generates **360 lines** of unused arguments warnings.
 
 ### ...or errors
 
-Monomorphization will generate a function every possible combination of argument
-types for the lambda. Here we have two arguments which can have 4 types so 16
-functions times 2 unused arguments.
-
+- Monomorphization will generate a function for **every possible combination** of
+  argument types for the lambda
+- 2 arguments and 4 possible types so $2^4$ generated functions $\times$ 2
+  unused arguments $=$ 32 warnings
 \pause
-Each type being an anonymous awful generated type also adds to the message's
-length.
+- Each type being a long generated type also adds to the message's length
 
 \pause
 Here this is only warnings, but imagine if we had template errors inside of the
@@ -330,8 +329,8 @@ Three ideas:
 ### The template hell
 
 - Templates add a lot of complexity to the code you write
-- Keep in mind the tree structure is an intermediate representation generated
-  from an AST, so the problem is the same
+- The tree structure is an generated from an AST anyway, so the problem is the
+  same
 - How can we even handle every possible tree structure at compilation anyway?
 
 \pause
@@ -346,21 +345,19 @@ tree... This makes no sense.
 
 \pause
 #### Note
-We could think about using tags and end up with `Mem<mem_t>` to restrict the
-depth of the template, it might be possible to have it working but would still
-involve a lot of complexity.
+Using only a small depth might work but it still would involve a lot of
+complexity, both at generation and at use.
 
 ### There can't be that many cases, right?
 
 Handling statically every possible dynamic case might be possible.
 
-::: {.block}
-#### Example
-See `code/...`
-:::
-
+- Go through each node
+- Go though each of its children
+- Depending on all types, instantiate a template statically
 \pause
-- We end with nested visits to generate templated types...
+- So we just end up with nested visits to generate templated types... \pause So
+  that we can visit them again?
 \pause
 - Why not just perform nested visits then?
 
@@ -394,11 +391,11 @@ What we try to do here can't work.
 
 \pause
 
-- We can't mix dynamic and static polymorphism at will, by definition it's not
+- We can't mix dynamic and static polymorphism at will, it's not
   the way they work.
 \pause
-- Generating templated types from types unknown at compilation this way, the
-  basis of our pattern-matching destructuration, is not possible.
+- We can't generate templated types from types unknown at compilation, the basis
+  basis of our pattern-matching destructuration.
 \pause
 
 We'll have to stick to more basic matching, but that's okay: C++ is just not the
