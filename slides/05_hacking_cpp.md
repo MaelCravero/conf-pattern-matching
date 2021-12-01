@@ -34,8 +34,6 @@ binop: Binop(left : exp, right : exp)
 
 ### From nested switches...
 
-The previous code would generate something like that (way less readable though):
-
 ```cpp
 switch(tree->type) {
 case Tree::BINOP:
@@ -49,12 +47,7 @@ case Tree::BINOP:
 }
 ```
 
-To make this work, each node had a tag to specify its dynamic type. \pause We
-can do better.
-
 ### ...to nested visits
-
-If we can nest switches, why not nest visits?
 
 ```cpp
 void GasMatcher::operator()(tree::rBinop binop)
@@ -70,8 +63,8 @@ void GasMatcher::operator()(tree::rBinop binop)
         left, right);
 }
 ```
-
-This is a bit better, but still kind of whack...
+\pause
+Still no destructuring though...
 
 ### Not so trivial
 
@@ -127,6 +120,50 @@ Seems simple! Here's what we have to do:
 \pause
 5. Cry over the sheer number of templates everywhere
 
+### A quick look
+
+```cpp
+template <typename T> struct Mem : public Tree { ... };
+
+template <typename T>
+using sMem = std::shared_ptr<Mem<T>>;
+
+template <typename T>
+using vTree = std::variant<sMem<T>, sInt>;
+```
+
+### A quick look
+
+```cpp
+struct Matcher
+{
+    void operator()(const auto& t) { ... }
+
+    template <typename T>
+    void operator()(const sMem<Mem<T>>& m) { ... }
+
+    template <typename T>
+    void operator()(const sMem<T>& m) { ... }
+};
+```
+
+### A quick look
+
+```cpp
+int main(void)
+{
+    sInt i1(new Int(42));
+    sInt i2(new Int(21));
+    sMem<Int> mem1(new Mem<Int>(i1));
+    sMem<Mem<Int>> mem2(new Mem<Mem<Int>>(mem1));
+    vTree<Int> t1 = mem1;
+    vTree<Mem<Int>> t2 = mem2;
+
+    std::visit(Matcher(), t1);
+    std::visit(Matcher(), t2);
+    return 0;
+}
+```
 ### We're in too deep
 
 You should be asking yourselves some questions:
@@ -149,13 +186,48 @@ You should be asking yourselves some questions:
 - What if we were able to use `auto` as a template parameter?
 
 \pause
-Well, unfortunately we can't. Instead we have **template argument deduction**:
-since C++17, if we **omit** the template arguments in certain contexts (like
+Well, unfortunately we can't. Instead we have **template argument deduction**.
+
+\pause
+Since C++17, if we **omit** the template arguments in certain contexts (like
 definitions) they can be **inferred**.
 
-But they can't be used everywhere... \pause So we make templated factory
-functions which can deduce what can't be deduced at construction.
+\pause
+But this can't be used everywhere...
 
+### Factory functions for type deduction
+```cpp
+template <typename T>
+static sMem<T> make_mem(const std::shared_ptr<T>& exp)
+{
+    return sMem<T>(new Mem(exp));
+}
+
+template <typename T>
+static vTree<T> variant_mem(sMem<T> mem)
+{
+    return mem;
+}
+```
+
+### Factory functions for type deduction
+```cpp
+int main(void)
+{
+    sInt i1(new Int(42));
+    sInt i2(new Int(21));
+
+    auto mem1 = make_mem(i1);
+    auto mem2 = make_mem(mem1);
+    auto t1 = variant_mem(mem1);
+    auto t2 = variant_mem(mem2);
+
+    std::visit(Matcher(), t1);
+    std::visit(Matcher(), t2);
+
+    return 0;
+}
+```
 ### Using the dynamic type in variants
 
 What if a node's static type differs from it's dynamic type?
@@ -172,12 +244,79 @@ but we want to access the dynamic type.
 \pause
 To access the dynamic type, we have to use virtual methods.
 
+### More templates
+
+```cpp
+// [...] (forward declarations)
+
+template <typename T1, typename T2>
+using vTree = std::variant<sMem<T1>, sMove<T1, T2>, sInt>;
+
+template <typename T1, typename T2>
+struct Tree
+{
+    virtual void traverse() = 0;
+
+    virtual vTree<T1, T2> variant() = 0;
+};
+```
+
+### More templates
+
+```cpp
+// Dummy class
+struct None : public Tree<None, None> { ... };
+
+struct Int : public Tree<None, None> { ... };
+
+template <typename T>
+struct Mem : public Tree<T, None> { ... };
+
+template <typename D, typename S>
+struct Move : public Tree<D, S> { ... };
+```
+
+### More templates
+
+```cpp
+int main(void)
+{
+    sInt i1(new Int(42));
+
+    auto mem1 = make_mem(i1);
+    auto t1 = mem1->variant();
+    std::visit(Matcher(), t1);
+
+    sTree<Int, None> tree = mem1;
+    auto t2 = tree->variant();
+    std::visit(Matcher(), t2); // Same result
+
+    return 0;
+}
+```
+
+### Memory issues
+
+- The previous example outputs the right result
+\pause
+- But we have a memory error
+
+```
+free(): double free detected in tcache 2
+Aborted (core dumped)
+```
+
+\pause
+This is due to our use of `std::shared_ptr`, the C++ *smart pointers*.
+
 ### Smarter pointers
 
-- Shared pointers are used throughout the program for memory management
-- They are garbage collected using **reference counting**
-- Each shared pointer points to a dynamically allocated resource and contains a
-  counter to the number of shared pointers referencing it
+- C++ is not garbage collected, so we must free memory
+- Shared pointers can be used for memory management
+- They are automatically freed using **reference counting**
+
+Each shared pointer points to a dynamically allocated resource and contains a
+counter to the number of shared pointers referencing it
 
 \vfill
 \pause
@@ -214,18 +353,54 @@ std::shared_ptr<A> ptr2(raw_A); // ptr2's use_count = 1
 
 ### C++ black magic
 
-- Thanks to `std::enable_shared_from_this` we can fix this issue
+- Thanks to `std::enable_shared_from_this` we can fix this issue.
 - Using the provided `shared_from_this` method returns a smart pointer with the
-  correct reference count, which can then be propagated through copy
-  construction
+  correct reference count.
+- It can then be propagated through copy construction, as usual.
 
-\vfill
-\pause
-#### Note
+### Before...
 
-This does not work in TC, probably due to our wrapper class on
-`std::shared_ptr`. Instead, we pass the shared pointer as argument to the
-virtual method to propagate its use count...
+```cpp
+struct Int : public Tree<None, None>
+{
+    // ...
+
+    virtual vTree<None, None> variant() override
+    {
+        sInt res(this);
+        return res;
+    }
+
+    int val;
+};
+```
+
+### ...after
+
+```cpp
+struct Int
+    : public Tree<None, None>
+    , std::enable_shared_from_this<Int>
+{
+    // ...
+
+    virtual vTree<None, None> variant() override
+    {
+        sInt res(this->shared_from_this());
+        return res;
+    }
+
+    int val;
+};
+```
+
+### Note
+
+- This does fix memory issues.
+- ...but this does not work in TC, probably due to our wrapper class on
+  `std::shared_ptr`.
+- Instead, we pass the shared pointer as argument to the virtual method to
+  propagate its use count...
 
 ```cpp
 auto left = binop->left_get()->variant(binop->left_get());
@@ -266,10 +441,20 @@ This **11 lines** code generates **360 lines** of unused arguments warnings.
 Here this is only warnings, but imagine if we had template errors inside of the
 lambda...
 
-\vfill
-\pause
-#### An exercise in absurdity
-See `code/cpp-matching-hacks/minmax.cc`
+### An exercise in absurdity
+
+```cpp
+#include <variant>
+using variant = std::variant<int, float, char, bool>;
+int main()
+{
+    variant v = 0;
+    std::visit(
+        [](auto a, auto b, auto c, auto d,
+           auto e, auto f, auto g, auto h) {},
+        v, v, v, v, v, v, v, v);
+}
+```
 
 ### Subtyping gets rid of templates!
 
@@ -278,22 +463,34 @@ See `code/cpp-matching-hacks/minmax.cc`
 - This means we can remove the `auto` for default cases!
 - Without `auto`, no more monomorphization and way shorter error messages
 
-\vfill
-#### Example
-See `code/cpp-matching-hacks/match-tree-upcast.cc`
+### Example
 
+```cpp
+struct Matcher
+{
+    void operator()(sTree t) { ... }
+
+    void operator()(sMem m) { ... }
+};
+
+int main(void)
+{
+    sInt i1(new Int(42));
+    vTree t1 = i1;
+    std::visit(Matcher(), t1);
+    return 0;
+}
+```
+
+### ...but not in TC
+- This does not work in TC due to our wrapper class on `std::shared_ptr`.
 \pause
-#### ...but not in TC
-This does not work in TC due to our wrapper class on `std::shared_ptr`.
-
-
-\pause
-This is due to poor template instantiation which can be fixed using C++20
+- This is due to poor template instantiation which can be fixed using C++20
 concepts (a mechanism for adding constraints to templates).
 
 ### Aren't we missing something?
 
-If you paid attention, the last examples did not feature any destructuring.
+If you paid attention, the last example did not feature any destructuring.
 
 \pause
 - Implementing it features templates heavily, which does complicates everything.
@@ -320,11 +517,11 @@ Three ideas:
 
 \pause
 
-2. Statically handle every possible case
+2. Statically handle every possible run-time case
 
 \pause
 
-3. Get type tags from virtual methods and use it as template parameter
+3. Get type tags from virtual methods and use them as template parameter
 
 ### The template hell
 
@@ -366,7 +563,8 @@ This is a working solution, but adds too much unnecessary complexity.
 
 ### Dynamic and static don't match
 
-\pause
+What's wrong with this?
+
 ```cpp
 template <int N> struct S {};
 int main(int argc, char *argv[])
@@ -380,14 +578,15 @@ Templates are **compile-time** only. What's the value of `argc` at compilation?
 
 \pause
 - This will not compile because every template parameter must be known at
-  compilation
-- Virtual method calls are run-time only
-
-We can't use virtual methods results for templating.
+  compilation.
+\pause
+- But virtual method calls are run-time only...
+\pause
+- So we can't use virtual methods results for templating.
 
 ### Wasted
 
-What we try to do here can't work.
+What we try to do here cannot work.
 
 \pause
 

@@ -16,10 +16,10 @@ good at.
 
 ### Libraries are, in fact, a thing
 
-- We aim to keep TC "vanilla", bu in real life, we would most likely libraries
+- We aim to keep TC "vanilla", but in real life, we would most likely libraries
   instead
 \pause
-- One of the most well known is Michael Park's **Patterns** library which looks
+- One of the most well known is Michael Park's **patterns** library which looks
   like this:
 
 ```cpp
@@ -45,4 +45,7 @@ int fact(int n) {
 So who knows, maybe one day we'll have what we need in C++...
 
 \pause
-In the meantime, I'll be coding in OCaml!
+\vfill
+
+#### Slides and code examples
+[https://github.com/MaelCravero/conf-pattern-matching](https://github.com/MaelCravero/conf-pattern-matching)

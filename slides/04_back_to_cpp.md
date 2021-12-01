@@ -260,7 +260,59 @@ Time to put it all together!
 Let's see a simple recreation of the structure we use for instruction
 scheduling.
 
-\vfill
+### Basic solution
 
-#### Example
-See `code/cpp-matching/match-tree.cc`
+```cpp
+struct Tree { virtual void traverse() = 0; };
+
+using sTree = std::shared_ptr<Tree>;
+
+struct Int : public Tree { ... };  // Leaf, no child
+struct Mem : public Tree { ... };  // One child
+struct Move : public Tree { ... }; // Two children
+
+using sInt = std::shared_ptr<Int>;
+using sMem = std::shared_ptr<Mem>;
+using sMove = std::shared_ptr<Move>;
+
+using vTree = std::variant<sMem, sMove, sInt>;
+```
+
+### Basic solution
+
+```cpp
+struct Matcher
+{
+    void operator()(const auto& t)
+    {
+        std::cout << "auto! ";
+        t->traverse();
+    }
+
+    void operator()(const sMem& m)
+    {
+        std::cout << "sMem! ";
+        m->traverse();
+    }
+};
+```
+
+### Basic solution
+
+```cpp
+int main(void)
+{
+    sInt i1(new Int(42));
+    sInt i2(new Int(21));
+
+    sMem mem(new Mem(i1));
+    sMove move(new Move(i2, mem));
+
+    vTree t1 = move;
+    vTree t2 = mem;
+
+    std::visit(Matcher(), t1); // auto!
+    std::visit(Matcher(), t2); // sMem!
+    return 0;
+}
+```

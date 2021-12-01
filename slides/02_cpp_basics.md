@@ -77,13 +77,29 @@ only).
   from another class.
 - This is a form of **subtyping**.
 
-\vfill
 This subclass can be used in any context where the superclass is expected, but
 not the reverse.
 
-\vfill
-#### Example
-See `code/cpp-basics/subtypes.cc`
+### Example
+
+
+```cpp
+struct C {};
+struct Sub_C : public C {};
+void f(C) {}
+void g(Sub_C) {}
+
+int main()
+{
+    C c;
+    Sub_C sub;
+
+    f(sub); // works properly
+    g(c);   // does not compile
+
+    return 0;
+}
+```
 
 ### Static type, dynamic type
 
@@ -97,9 +113,38 @@ Depending on the context, an object can have multiple types:
 
 The dynamic type of an object can be accessed through **virtual methods**.
 
-\vfill
-#### Example
-See `code/cpp-basics/static-vs-dynamic.cc`
+### Example
+```cpp
+struct C
+{
+    void static_f() { std::cout << "C" << std::endl; }
+    virtual void dynamic_f() { std::cout << "C" << std::endl; }
+};
+
+struct Sub_C : public C
+{
+    void static_f() { std::cout << "not C" << std::endl; }
+    virtual void dynamic_f() override
+    {
+        std::cout << "not C" << std::endl;
+    }
+};
+```
+
+### Example (part2)
+
+```cpp
+int main()
+{
+    C* false_c = new Sub_C();
+
+    false_c->static_f();  // C
+    false_c->dynamic_f(); // not C
+
+    delete false_c;
+    return 0;
+}
+```
 
 ### Templates and monomorphization
 
@@ -111,11 +156,8 @@ See `code/cpp-basics/static-vs-dynamic.cc`
 Templates are **fully static**, they are processed at compile-time only and do
 not exist at run-time.
 
-\vfill
-
 #### Quick note
 Templates are the main mechanism causing the awful error messages of C++.
-1091 lines of error for a one-line function? Thank templates.
 
 ### Template instantiation
 
@@ -133,15 +175,54 @@ int main()
 }
 ```
 
+### After monomorphization
+
+```cpp
+void f_int()
+{}
+
+void f_float()
+{}
+
+int main()
+{
+    f_int();   // generated function specialized for int
+    f_float(); // generated function specialized for float
+
+    return 0;
+}
+```
+
+### In LLVM-IR
+
+```llvm
+define dso_local i32 @main() #0 {
+  %1 = alloca i32, align 4
+  store i32 0, i32* %1, align 4
+  call void @_Z1fIiEvv()
+  call void @_Z1fIfEvv()
+  ret i32 0
+}
+
+define linkonce_odr dso_local void @_Z1fIiEvv() #1 comdat {
+  ret void
+}
+
+define linkonce_odr dso_local void @_Z1fIfEvv() #1 comdat {
+  ret void
+}
+```
+
+
 ### C++20 `auto` syntax
 
-In C++20, one can write the following:
+In C++20, one can write the following
 ```cpp
 template <typename T>
 void print(T v) { std::cout << v; }
 ```
 
-as such:
+as such
 
 ```cpp
 void print(auto v) { std::cout << v; }

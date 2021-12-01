@@ -94,14 +94,17 @@ Let's put it all in practice!
 
 ```ocaml
 type tree = Int of int | Mem of tree | Move of tree * tree
-let rec traverse = function ...
-let matcher = function ...
+let rec traverse = function ... (* print the tree recursively *)
+
+let matcher = function
+  | Mem t ->
+    print_string "Mem! "; traverse (Mem t)
+  | Move (dst, Mem t) ->
+    print_string "Move with src Mem! "; traverse (Move (dst, Mem t))
+  | t ->
+    print_string "Wildcard "; traverse t
+;;
 ```
 
 \pause
-Last OCaml example, I swear.
-
-\vfill
-#### Example
-
-See `code/pattern-matching/match-tree.ml`
+Last OCaml example, I swear
