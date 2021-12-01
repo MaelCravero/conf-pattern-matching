@@ -23,13 +23,13 @@ OUT = \
       cpp-matching-hacks/match-tree-upcast \
       cpp-matching-hacks/match-tree-upcast-ref \
       cpp-matching-hacks/minmax \
-      cpp-matching-hacks/warnings \
-      match_tree \
-      match_tree_ref \
-      minmax_warnings \
-      warnings
+      cpp-matching-hacks/warnings
 
 all: $(OUT)
+
+cpp-basics: $(filter cpp-basics/%,$(OUT))
+cpp-matching: $(filter cpp-matching/%,$(OUT))
+cpp-matching-hacks: $(filter cpp-matching-hacks/%,$(OUT))
 
 %.ll: %.cc
 	clang++ -emit-llvm -S $^ -o $@
