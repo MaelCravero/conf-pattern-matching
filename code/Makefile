@@ -1,9 +1,11 @@
 CXXFLAGS = -Wall -Wextra -pedantic -std=c++20
 CFLAGS = -Wall -Wextra -pedantic -std=c99
 
+# Commented files are the ones triggering warnings or errors, they can still be
+# compiled manually if need be.
+
 OUT = \
       cpp-basics/hello \
-      cpp-basics/subtypes \
       cpp-basics/static-vs-dynamic \
       cpp-basics/template-instanciation.ll \
       cpp-matching/the-answer \
@@ -17,13 +19,15 @@ OUT = \
       cpp-matching-hacks/match-tree-step1 \
       cpp-matching-hacks/match-tree-step2 \
       cpp-matching-hacks/match-tree-step3 \
-      cpp-matching-hacks/match-tree-step4 \
       cpp-matching-hacks/match-tree-step5 \
       cpp-matching-hacks/match-tree-step6 \
       cpp-matching-hacks/match-tree-upcast \
-      cpp-matching-hacks/match-tree-upcast-ref \
-      cpp-matching-hacks/minmax \
-      cpp-matching-hacks/warnings
+      #cpp-basics/subtypes \
+      #cpp-matching/hello-there \
+      #cpp-matching-hacks/match-tree-step4 \
+      #cpp-matching-hacks/match-tree-upcast-ref \
+      #cpp-matching-hacks/minmax \
+      #cpp-matching-hacks/warnings \
 
 all: $(OUT)
 

@@ -1,3 +1,5 @@
+// Elaboration on match-tree.cc using templates on Mem
+
 #include <iostream>
 #include <memory>
 #include <variant>
@@ -60,7 +62,7 @@ struct Matcher
     }
 
     template <typename T>
-    void operator()(const sMem<sMem<T>>& m)
+    void operator()(const sMem<Mem<T>>& m)
     {
         std::cout << "sMem with a sMem child! ";
         m->traverse();

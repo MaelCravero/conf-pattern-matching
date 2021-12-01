@@ -1,3 +1,5 @@
+// Demonstration that variants types are not checked statically.
+
 #include <string>
 #include <variant>
 

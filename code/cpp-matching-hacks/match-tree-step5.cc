@@ -1,3 +1,6 @@
+// Same as match-tree-step4.cc using a dummy tree class instead of void
+// Will segfault at runtime due to poor use of shared pointers
+
 #include <cassert>
 #include <iostream>
 #include <memory>
@@ -204,6 +207,10 @@ int main(void)
     std::visit(Matcher(), t3);
     std::visit(Matcher(), t4);
     std::visit(Matcher(), t5);
+
+    sTree<Int, None> tree = mem1;
+
+    std::visit(Matcher(), tree->variant());
 
     return 0;
 }

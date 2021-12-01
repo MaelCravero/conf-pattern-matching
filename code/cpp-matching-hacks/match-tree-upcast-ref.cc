@@ -1,3 +1,8 @@
+// match-tree-upcast.cc with TC's misc::ref wrapper on shared instead of
+// std::shared_ptr. This causes issues when using the unpatched version due to
+// poor template instantiations. C++20 concepts can be used to fix this through
+// template restrictions.
+
 #include <iostream>
 #include <variant>
 

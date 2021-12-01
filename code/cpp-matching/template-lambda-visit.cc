@@ -1,3 +1,5 @@
+// Basic matcher simulating a desugared lambda [](auto x){ ... }
+
 #include <iostream>
 #include <variant>
 

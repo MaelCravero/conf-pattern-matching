@@ -1,3 +1,4 @@
+// C is a class
 struct C
 {};
 
@@ -17,7 +18,8 @@ int main()
     Sub_C sub;
     f(c);
     f(sub);
-    // g(c); does not compile
+    g(c); // does not compile: the superclass cannot be used instead of a
+          // subclass
     g(sub);
 
     return 0;

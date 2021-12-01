@@ -1,12 +1,22 @@
+// Basic exemple of matching on trees.
+
 #include <iostream>
 #include <memory>
 #include <variant>
 
+//------------------------------------------------------------------//
+//                     Tree classes definitions                     //
+//------------------------------------------------------------------//
+
+/// Tree is the abstract class all nodes inherit from.
 struct Tree
 {
     virtual void traverse() = 0;
 };
 
+using sTree = std::shared_ptr<Tree>;
+
+/// Int is a leaf, it represents an immediate value.
 struct Int : public Tree
 {
     Int(int val)
@@ -21,8 +31,7 @@ struct Int : public Tree
     int val;
 };
 
-using sTree = std::shared_ptr<Tree>;
-
+/// Mem is a node with one child, it represents a memory access.
 struct Mem : public Tree
 {
     Mem(sTree exp)
@@ -39,6 +48,7 @@ struct Mem : public Tree
     sTree exp;
 };
 
+/// Move is a node with two children, it represents an assembly move.
 struct Move : public Tree
 {
     Move(sTree dst, sTree src)
@@ -59,11 +69,23 @@ struct Move : public Tree
     sTree src;
 };
 
+//------------------------------------------------------------------//
+//                  Smart pointer types defintions                  //
+//------------------------------------------------------------------//
+
 using sInt = std::shared_ptr<Int>;
 using sMem = std::shared_ptr<Mem>;
 using sMove = std::shared_ptr<Move>;
 
+//------------------------------------------------------------------//
+//                        Variant definition                        //
+//------------------------------------------------------------------//
+
 using vTree = std::variant<sMem, sMove, sInt>;
+
+//------------------------------------------------------------------//
+//                        Matcher definition                        //
+//------------------------------------------------------------------//
 
 struct Matcher
 {
@@ -82,18 +104,23 @@ struct Matcher
     }
 };
 
+//------------------------------------------------------------------//
+//                          Main function                           //
+//------------------------------------------------------------------//
+
 int main(void)
 {
     sInt i1(new Int(42));
     sInt i2(new Int(21));
+
     sMem mem(new Mem(i1));
+
     sMove move(new Move(i2, mem));
+
     vTree t1 = move;
     vTree t2 = mem;
 
-    sTree t(i1);
-
-    std::visit(Matcher(), t1);
-    std::visit(Matcher(), t2);
+    std::visit(Matcher(), t1); // auto!
+    std::visit(Matcher(), t2); // sMem!
     return 0;
 }

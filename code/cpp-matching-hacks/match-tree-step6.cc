@@ -1,3 +1,6 @@
+// Same as match-tree-step5.cc but we fix the memory issue through
+// std::enable_shared_from_this
+
 #include <cassert>
 #include <iostream>
 #include <memory>

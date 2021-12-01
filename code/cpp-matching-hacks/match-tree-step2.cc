@@ -1,3 +1,5 @@
+// Elaboration on match-tree-step1.cc using templated factory function
+
 #include <iostream>
 #include <memory>
 #include <variant>

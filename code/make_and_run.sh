@@ -1,5 +1,5 @@
 #!/bin/sh
 
 for arg; do
-    make $arg && ./$arg
+    make -B $arg && ./$arg
 done

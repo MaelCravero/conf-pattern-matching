@@ -1,3 +1,5 @@
+// Based on match-tree.cc using upcasts of shared_ptr instead of auto functions
+
 #include <iostream>
 #include <memory>
 #include <variant>

@@ -1,3 +1,5 @@
+// Unused arguments showcase for generated functions.
+
 #include <iostream>
 #include <variant>
 

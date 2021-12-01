@@ -1,3 +1,5 @@
+// Standard hello world, nothing fancy.
+
 #include <iostream>
 
 int main()

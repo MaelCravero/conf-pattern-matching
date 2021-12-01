@@ -1,3 +1,7 @@
+// Elaboration on match-tree-step3.cc, adding virtual methods to generate
+// variants. Will not compile due to the use of void as template parameter when
+// no type fits.
+
 #include <iostream>
 #include <memory>
 #include <variant>

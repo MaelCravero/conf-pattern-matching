@@ -1,3 +1,7 @@
+// An attempt at wrapping elements with type tags.
+// Obviously won't work since template arguments must be constexpr, which is not
+// the case for results of virtual methods.
+
 #include <iostream>
 #include <memory>
 #include <variant>

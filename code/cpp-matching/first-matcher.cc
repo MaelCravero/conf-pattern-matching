@@ -1,3 +1,5 @@
+// Basic matching on variants.
+
 #include <variant>
 
 struct A
@@ -20,5 +22,5 @@ struct Is_A
 int main()
 {
     std::variant<A, B> v = A();
-    return std::visit(Is_A(), v);
+    return std::visit(Is_A(), v); // returns 1 (true)
 }

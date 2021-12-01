@@ -1,3 +1,5 @@
+// Basic demonstration of C++ algebraic types.
+
 #include <string>
 #include <tuple>
 #include <variant>
